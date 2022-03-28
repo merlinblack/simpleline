@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
+#include <unistd.h>
+#include <limits.h>
 
 #define BUFFERSIZE 1024
 #define MAX_BRANCHNAME_LEN 256
@@ -22,7 +24,7 @@
 #define SEGMENT "\uE0B0"
 #define SEGMENT_THIN "\uE0B1"
 
-#define RESET_COLOR "\x1b[0m"
+#define RESET_COLOR "\\[\x1b[0m\\]"
 
 typedef struct Segment {
 	char text[MAX_BRANCHNAME_LEN];
@@ -86,19 +88,21 @@ Segment *git_segments(Segment *current)
 		switch (buffer[0])
 		{
 			case '#':
-				char* end = strchr(&buffer[3], '.');
-				if (!end)
-				{
-					end = strchr(&buffer[3], '\n');
-				}
-				if (end)
-				{
-					strncpy(branch, buffer + 3, end - &buffer[3]);
-				}
-				else 
-				{
-					strcpy(branch, &buffer[3]);
-				}
+        {
+          char* end = strchr(&buffer[3], '.');
+          if (!end)
+          {
+            end = strchr(&buffer[3], '\n');
+          }
+          if (end)
+          {
+            strncpy(branch, buffer + 3, end - &buffer[3]);
+          }
+          else 
+          {
+            strcpy(branch, &buffer[3]);
+          }
+        }
 				break;
 			case 'A':
 			case 'M':
@@ -149,6 +153,17 @@ Segment *git_segments(Segment *current)
 Segment *user_segment(Segment *current)
 {
 	return addSegment(current, getenv("USER"), 231, 22, true);
+}
+
+Segment *host_segment(Segment *current)
+{
+  if (getenv("SSH_CLIENT") != NULL)
+  {
+    char buffer[HOST_NAME_MAX+1];
+    gethostname(buffer, HOST_NAME_MAX+1);
+    current = addSegment( current, buffer, 231, 89, false );
+  }
+  return current;
 }
 
 Segment *current_dir_segments(Segment *current)
@@ -234,18 +249,18 @@ void print_segments(Segment *head)
 		}
 		if (current->bold)
 		{
-			printf("%s", "\x1b[1m");
+			printf("%s", "\\[\x1b[1m\\]");
 		}
-		printf("\x1b[38;5;%dm\x1b[48;5;%dm %s \x1b[0m", current->fore_color, current->back_color, current->text);
+		printf("\\[\x1b[38;5;%dm\x1b[48;5;%dm\\] %s \\[\x1b[0m\\]", current->fore_color, current->back_color, current->text);
 		if (current->next)
 		{
 			if (current->back_color == current->next->back_color)
 			{
-				printf("\x1b[38;5;245m\x1b[48;5;%dm%s", current->next->back_color, SEGMENT_THIN);
+				printf("\\[\x1b[38;5;245m\x1b[48;5;%dm\\]%s", current->next->back_color, SEGMENT_THIN);
 			}
 			else
 			{
-				printf("\x1b[38;5;%dm\x1b[48;5;%dm%s", current->back_color, current->next->back_color, SEGMENT);
+				printf("\\[\x1b[38;5;%dm\x1b[48;5;%dm\\]%s", current->back_color, current->next->back_color, SEGMENT);
 			}
 		}
 
@@ -253,7 +268,7 @@ void print_segments(Segment *head)
 		current = current->next;
 	}
 
-	printf("\x1b[38;5;%dm\x1b[48;5;0m%s%s ", last_back_color, SEGMENT, RESET_COLOR);
+	printf("\\[\x1b[38;5;%dm\x1b[48;5;0m\\]%s%s ", last_back_color, SEGMENT, RESET_COLOR);
 
 }
 
@@ -266,6 +281,7 @@ int main(int argc, char*argv[])
 
 	current = git_segments(head);
 	current = user_segment(current);
+	current = host_segment(current);
 	current = current_dir_segments(current);
 	current = friday_icon_segment(current);
 
