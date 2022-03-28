@@ -138,7 +138,7 @@ Segment *git_segments(Segment *current)
 				REPO_UNTRACKED, untracked);
 		current = addSegment( current, buffer, 231, 32, false);
 
-		sprintf(buffer, "%s\n", RESET_COLOR);
+		sprintf(buffer, "%s\r\n", RESET_COLOR);
 		current = addSegment( current, buffer, 0, 0, false);
 		current->raw = true;
 	}
