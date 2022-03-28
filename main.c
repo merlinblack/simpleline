@@ -6,6 +6,7 @@
 
 #define BUFFERSIZE 1024
 #define MAX_BRANCHNAME_LEN 256
+#define PATH_SHORTEN_LENGTH 35
 
 #define REPO_BRANCH "\uE0A0"
 #define REPO_STAGED "\u2714"
@@ -16,6 +17,7 @@
 
 #define BEERMUG "\U0001F37A"
 #define PENGUIN "\U0001F427"
+#define PATH_ELLIPSIS "\u2026"
 
 #define SEGMENT "\uE0B0"
 #define SEGMENT_THIN "\uE0B1"
@@ -167,12 +169,32 @@ Segment *current_dir_segments(Segment *current)
 		strcpy(path, pwd);
 	}
 
+	int path_len = strlen(path);
 	char *folder = strtok(path, seperator);
 
-	while (folder)
+	if (path_len < PATH_SHORTEN_LENGTH)
 	{
+		while (folder)
+		{
+			current = addSegment(current, folder, 231, 238, false);
+			folder = strtok(NULL, seperator);
+		}
+	}
+	else {
+		// Only add first, '...' and last current path folder.
 		current = addSegment(current, folder, 231, 238, false);
 		folder = strtok(NULL, seperator);
+		current = addSegment(current, PATH_ELLIPSIS, 231, 238, false);
+		char *prev_folder = NULL;
+		while (folder)
+		{
+			prev_folder = folder;
+			folder = strtok(NULL, seperator);
+		}
+		if (prev_folder)
+		{
+			current = addSegment(current, prev_folder, 231, 238, false);
+		}
 	}
 
 	current->bold = true;
