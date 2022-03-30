@@ -150,7 +150,19 @@ Segment *git_segments(Segment *current)
 	return current;
 }
 
+Segment *notice_segment(Segment *current)
+{
+    if (getenv("PROMPT_NOTICE"))
+    {
+        current = addSegment(current, getenv("PROMPT_NOTICE"), 231, 38, false);
+        current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
+        current->raw = true;
+    }
+	return current;
+}
+
 Segment *user_segment(Segment *current)
+
 {
 	return addSegment(current, getenv("USER"), 231, 22, true);
 }
@@ -280,6 +292,7 @@ int main(int argc, char*argv[])
 	Segment *current;
 
 	current = git_segments(head);
+	current = notice_segment(current);
 	current = user_segment(current);
 	current = host_segment(current);
 	current = current_dir_segments(current);
