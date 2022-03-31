@@ -1,5 +1,5 @@
 function _update_ps1() {
-    PS1="$($HOME/prog/simpleline/simpleline)"
+    PS1="$($HOME/prog/simpleline/simpleline --exitcode $? --jobs $(jobs -l | wc -l))"
 }
 
 PROMPT_COMMAND="_update_ps1;"
