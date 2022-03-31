@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <limits.h>
+#include <getopt.h>
 
 #define BUFFERSIZE 1024
 #define MAX_BRANCHNAME_LEN 256
@@ -25,6 +26,10 @@
 #define SEGMENT_THIN "\uE0B1"
 
 #define RESET_COLOR "\\[\x1b[0m\\]"
+
+// Command line parameter values
+int last_command_exit_code = 0;
+int number_of_jobs_running = 0;
 
 typedef struct Segment {
 	char text[MAX_BRANCHNAME_LEN];
@@ -66,6 +71,35 @@ void freeSegments(Segment *head)
 	}
 }
 
+void parse_arguments(int argc, char *argv[])
+{
+	struct option long_options[] =
+	{
+		{"exitcode", required_argument, 0, 'e'},
+		{"jobs", required_argument, 0, 'j'},
+		{0, 0, 0, 0}
+	};
+	int option_index = 0;
+
+	// Keep going unill we break out
+	while(true)
+	{
+		int c = getopt_long(argc, argv, "e:j:", long_options, &option_index);
+
+		if (c == -1)
+			break;
+
+		switch (c)
+		{
+			case 'e':
+				last_command_exit_code = atoi(optarg);
+				break;
+			case 'j':
+				number_of_jobs_running = atoi(optarg);
+				break;
+		}
+	}
+}
 
 Segment *git_segments(Segment *current)
 {
@@ -178,6 +212,29 @@ Segment *host_segment(Segment *current)
   return current;
 }
 
+Segment* jobs_running_segment(Segment* current)
+{
+	if (number_of_jobs_running)
+	{
+		char buffer[32];
+		sprintf(buffer, "%d Jobs", number_of_jobs_running);
+		current = addSegment(current, buffer, 231, 22, false);
+	}
+	return current;
+}
+
+Segment* exitcode_segment(Segment* current)
+{
+	if (last_command_exit_code)
+	{
+		char buffer[32];
+		sprintf(buffer, "%d", last_command_exit_code);
+		current = addSegment(current, buffer, 231, 3, true);
+	}
+
+	return current;
+}
+
 Segment *current_dir_segments(Segment *current)
 {
 	char *seperator = "/";
@@ -286,6 +343,8 @@ void print_segments(Segment *head)
 
 int main(int argc, char*argv[])
 {
+	parse_arguments(argc, argv);
+
 	Segment *head = addSegment(NULL, "", 0, 0, false);
 	head->raw = true;
 
@@ -296,7 +355,9 @@ int main(int argc, char*argv[])
 	current = user_segment(current);
 	current = host_segment(current);
 	current = current_dir_segments(current);
+	current = jobs_running_segment(current);
 	current = friday_icon_segment(current);
+	current = exitcode_segment(current);
 
 	print_segments(head);
 
