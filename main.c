@@ -122,22 +122,22 @@ Segment *git_segments(Segment *current)
 		switch (buffer[0])
 		{
 			case '#':
-        {
-          char* end = strchr(&buffer[3], '.');
-          if (!end)
-          {
-            end = strchr(&buffer[3], '\n');
-          }
-          if (end)
-          {
-            strncpy(branch, buffer + 3, end - &buffer[3]);
-          }
-          else 
-          {
-            strcpy(branch, &buffer[3]);
-          }
-        }
+			{
+				char *end = strchr(&buffer[3], '.');
+				if (!end)
+				{
+					end = strchr(&buffer[3], '\n');
+				}
+				if (end)
+				{
+					strncpy(branch, buffer + 3, end - &buffer[3]);
+				}
+				else
+				{
+					strcpy(branch, &buffer[3]);
+				}
 				break;
+			}
 			case 'A':
 			case 'M':
 			case 'C':
@@ -196,7 +196,6 @@ Segment *notice_segment(Segment *current)
 }
 
 Segment *user_segment(Segment *current)
-
 {
 	return addSegment(current, getenv("USER"), 231, 22, true);
 }
