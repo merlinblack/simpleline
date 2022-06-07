@@ -186,12 +186,12 @@ Segment *git_segments(Segment *current)
 
 Segment *notice_segment(Segment *current)
 {
-  if (getenv("PROMPT_NOTICE"))
-  {
-      current = addSegment(current, getenv("PROMPT_NOTICE"), 231, 38, false);
-      current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
-      current->raw = true;
-  }
+	if (getenv("PROMPT_NOTICE"))
+	{
+		current = addSegment(current, getenv("PROMPT_NOTICE"), 231, 38, false);
+		current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
+		current->raw = true;
+	}
 	return current;
 }
 
@@ -202,13 +202,13 @@ Segment *user_segment(Segment *current)
 
 Segment *host_segment(Segment *current)
 {
-  if (getenv("SSH_CLIENT") != NULL)
-  {
-    char buffer[HOST_NAME_MAX+1];
-    gethostname(buffer, HOST_NAME_MAX);
-    current = addSegment( current, buffer, 231, 89, false );
-  }
-  return current;
+	if (getenv("SSH_CLIENT") != NULL)
+	{
+		char buffer[HOST_NAME_MAX+1];
+		gethostname(buffer, HOST_NAME_MAX);
+		current = addSegment( current, buffer, 231, 89, false );
+	}
+	return current;
 }
 
 Segment* jobs_running_segment(Segment* current)
