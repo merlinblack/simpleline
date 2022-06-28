@@ -7,8 +7,9 @@
 #include <limits.h>
 #include <getopt.h>
 
-#define BUFFERSIZE 1024
+#define PROC_BUFFER_SIZE 1024
 #define MAX_BRANCHNAME_LEN 256
+#define BUFFER_SIZE 256
 #define PATH_SHORTEN_LENGTH 35
 
 #define REPO_BRANCH "\uE0A0"
@@ -44,7 +45,7 @@ Segment *addSegment(Segment *prev, char *text, unsigned char fore_color, unsigne
 {
 	Segment *segment = malloc(sizeof *segment);
 
-	strcpy(segment->text, text);
+	strncpy(segment->text, text, MAX_BRANCHNAME_LEN-1);
 	segment->fore_color = fore_color;
 	segment->back_color = back_color;
 	segment->bold = bold;
@@ -104,7 +105,7 @@ void parse_arguments(int argc, char *argv[])
 Segment *git_segments(Segment *current)
 {
 	bool isGit = true;
-	char buffer[BUFFERSIZE];
+	char buffer[PROC_BUFFER_SIZE];
 	char branch[MAX_BRANCHNAME_LEN] = { 0 };
 	unsigned modified = 0;
 	unsigned untracked = 0;
@@ -112,7 +113,7 @@ Segment *git_segments(Segment *current)
 
 	FILE *git = popen("git status --porcelain=v1 --branch --ignore-submodules 2>&1", "r");
 
-	while (fgets(buffer, BUFFERSIZE, git) != NULL)
+	while (fgets(buffer, PROC_BUFFER_SIZE, git) != NULL)
 	{
 		if (strncmp(buffer, "fatal", 5) == 0)
 		{
@@ -165,18 +166,18 @@ Segment *git_segments(Segment *current)
 
 	if (isGit)
 	{
-		char buffer[256];
+		char buffer[BUFFER_SIZE];
 
-		sprintf(buffer, "%s %s", REPO_BRANCH, branch);
+		snprintf(buffer, BUFFER_SIZE, "%s %s", REPO_BRANCH, branch);
 		current = addSegment( current, buffer, 231, 52, false);
 
-		sprintf(buffer, "%s %u %s %u %s%d",
+		snprintf(buffer, BUFFER_SIZE, "%s %u %s %u %s%d",
 				REPO_NOT_STAGED, modified,
 				REPO_STAGED, staged,
 				REPO_UNTRACKED, untracked);
 		current = addSegment( current, buffer, 231, 32, false);
 
-		sprintf(buffer, "%s\r\n", RESET_COLOR);
+		snprintf(buffer, BUFFER_SIZE, "%s\r\n", RESET_COLOR);
 		current = addSegment( current, buffer, 0, 0, false);
 		current->raw = true;
 	}
@@ -215,8 +216,8 @@ Segment* jobs_running_segment(Segment* current)
 {
 	if (number_of_jobs_running)
 	{
-		char buffer[32];
-		sprintf(buffer, "%d Jobs", number_of_jobs_running);
+		char buffer[BUFFER_SIZE];
+		snprintf(buffer, BUFFER_SIZE, "%d Jobs", number_of_jobs_running);
 		current = addSegment(current, buffer, 231, 22, false);
 	}
 	return current;
@@ -226,8 +227,8 @@ Segment* exitcode_segment(Segment* current)
 {
 	if (last_command_exit_code)
 	{
-		char buffer[32];
-		sprintf(buffer, "%d", last_command_exit_code);
+		char buffer[BUFFER_SIZE];
+		snprintf(buffer, BUFFER_SIZE, "%d", last_command_exit_code);
 		current = addSegment(current, buffer, 231, 3, true);
 	}
 
