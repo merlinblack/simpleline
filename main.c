@@ -212,6 +212,32 @@ Segment *host_segment(Segment *current)
 	return current;
 }
 
+Segment* python_virtual_env_segment(Segment* current)
+{
+	char *env = "VIRTUAL_ENV";
+	if (getenv(env) != NULL)
+	{
+		char *seperator = "/";
+		char buffer[PATH_MAX];
+		strncpy(buffer, getenv(env), PATH_MAX);
+		char *folder = strtok(buffer, seperator);
+		char *prev = NULL;
+		char *prev2 = NULL;
+		while (folder)
+		{
+			prev2 = prev;
+			prev = folder;
+			folder = strtok(NULL, seperator);
+		}
+		if (prev2) {
+			current = addSegment(current, prev2, 231, 38, false );
+			current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
+			current->raw = true;
+		}
+	}
+	return current;
+}
+
 Segment* jobs_running_segment(Segment* current)
 {
 	if (number_of_jobs_running)
@@ -352,6 +378,7 @@ int main(int argc, char*argv[])
 
 	current = git_segments(head);
 	current = notice_segment(current);
+	current = python_virtual_env_segment(current);
 	current = user_segment(current);
 	current = host_segment(current);
 	current = current_dir_segments(current);
