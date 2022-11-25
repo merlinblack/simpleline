@@ -12,19 +12,19 @@
 #define BUFFER_SIZE 256
 #define PATH_SHORTEN_LENGTH 35
 
-#define REPO_BRANCH "\uE0A0"
-#define REPO_STAGED "\u2714"
-#define REPO_NOT_STAGED "\u270E"
+#define REPO_BRANCH "\uE0A0" // 
+#define REPO_STAGED "\u2714" // ✔
+#define REPO_NOT_STAGED "\u270E" // ✎
 #define REPO_UNTRACKED "+"
-#define REPO_CONFLICTED "\u273C"
-#define REPO_STASHED "\u2691"
+#define REPO_CONFLICTED "\u273C" // ✼
+#define REPO_STASHED "\u2691" // ⚑
 
-#define BEERMUG "\U0001F37A"
-#define PENGUIN "\U0001F427"
-#define PATH_ELLIPSIS "\u2026"
+#define BEERMUG "\U0001F37A" // 🍺
+#define PENGUIN "\U0001F427" // 🐧
+#define PATH_ELLIPSIS "\u2026" // …
 
-#define SEGMENT "\uE0B0"
-#define SEGMENT_THIN "\uE0B1"
+#define SEGMENT "\uE0B0" // 
+#define SEGMENT_THIN "\uE0B1" // 
 
 #define RESET_COLOR "\\[\x1b[0m\\]"
 
