@@ -190,7 +190,7 @@ Segment *notice_segment(Segment *current)
 	if (getenv("PROMPT_NOTICE"))
 	{
 		current = addSegment(current, getenv("PROMPT_NOTICE"), 231, 38, false);
-		current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
+		current = addSegment(current, RESET_COLOR "\r\n", 0, 0, false);
 		current->raw = true;
 	}
 	return current;
