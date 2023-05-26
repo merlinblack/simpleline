@@ -376,8 +376,8 @@ int main(int argc, char*argv[])
 
 	Segment *current;
 
-	current = git_segments(head);
-	current = notice_segment(current);
+	current = notice_segment(head);
+	current = git_segments(current);
 	current = python_virtual_env_segment(current);
 	current = user_segment(current);
 	current = host_segment(current);
