@@ -243,7 +243,7 @@ Segment* jobs_running_segment(Segment* current)
 	if (number_of_jobs_running)
 	{
 		char buffer[BUFFER_SIZE];
-		snprintf(buffer, BUFFER_SIZE, "%d Jobs", number_of_jobs_running);
+		snprintf(buffer, BUFFER_SIZE, "%d Job%s", number_of_jobs_running, number_of_jobs_running == 1 ? "": "s" );
 		current = addSegment(current, buffer, 231, 22, false);
 	}
 	return current;
