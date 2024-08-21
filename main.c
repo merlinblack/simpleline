@@ -131,7 +131,7 @@ Segment *git_segments(Segment *current)
 				}
 				if (end)
 				{
-					strncpy(branch, buffer + 3, end - &buffer[3]);
+					strncpy(branch, &buffer[3], end - &buffer[3]);
 				}
 				else
 				{
@@ -177,8 +177,7 @@ Segment *git_segments(Segment *current)
 				REPO_UNTRACKED, untracked);
 		current = addSegment( current, buffer, 231, 32, false);
 
-		snprintf(buffer, BUFFER_SIZE, "%s\r\n", RESET_COLOR);
-		current = addSegment( current, buffer, 0, 0, false);
+		current = addSegment( current, RESET_COLOR "\r\n", 0, 0, false);
 		current->raw = true;
 	}
 
