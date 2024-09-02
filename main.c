@@ -45,7 +45,8 @@ Segment *addSegment(Segment *prev, char *text, unsigned char fore_color, unsigne
 {
 	Segment *segment = malloc(sizeof *segment);
 
-	strncpy(segment->text, text, MAX_BRANCHNAME_LEN-1);
+	segment->text[0] = 0;
+	strncat(segment->text, text, MAX_BRANCHNAME_LEN-1);
 	segment->fore_color = fore_color;
 	segment->back_color = back_color;
 	segment->bold = bold;
