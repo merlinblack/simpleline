@@ -14,6 +14,7 @@ clean:
 
 .PHONY: install
 install: all
+	mkdir -p $(INSTALL_PREFIX)
 	install $(TARGET) $(INSTALL_PREFIX)
 	install $(SETUP_SCRIPT) $(INSTALL_PREFIX)
 
@@ -21,4 +22,4 @@ $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
 $(SETUP_SCRIPT): setup.in
-	sed "s#INSTALL_PREFIX#$(INSTALL_PREFIX)#;s#TARGET#$(TARGET)#" $< > $@
+	sed "s#INSTALL_PREFIX#$(abspath $(INSTALL_PREFIX))#;s#TARGET#$(TARGET)#" $< > $@
