@@ -21,4 +21,4 @@ $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
 $(SETUP_SCRIPT): setup.in
-	sed "s#INSTALL_PREFIX#$(INSTALL_PREFIX)#" $< > $@
+	sed "s#INSTALL_PREFIX#$(INSTALL_PREFIX)#;s#TARGET#$(TARGET)#" $< > $@

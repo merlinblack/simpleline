@@ -1,5 +1,5 @@
 function _update_ps1() {
-    PS1="$(INSTALL_PREFIX/simpleline --exitcode $? --jobs $(jobs -l | wc -l))"
+    PS1="$(INSTALL_PREFIX/TARGET --exitcode $? --jobs $(jobs -l | wc -l))"
 }
 
 PROMPT_COMMAND="_update_ps1;"
