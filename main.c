@@ -7,6 +7,11 @@
 #include <limits.h>
 #include <getopt.h>
 
+// For Darwin
+#ifndef HOST_NAME_MAX
+#  define HOST_NAME_MAX 128
+#endif
+
 #define PROC_BUFFER_SIZE 1024
 #define MAX_BRANCHNAME_LEN 256
 #define BUFFER_SIZE 256
