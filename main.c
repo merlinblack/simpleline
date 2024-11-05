@@ -212,6 +212,14 @@ Segment *host_segment(Segment *current)
 	{
 		char buffer[HOST_NAME_MAX+1];
 		gethostname(buffer, HOST_NAME_MAX);
+        buffer[HOST_NAME_MAX] = 0; // Incase of truncation
+
+        // Only display up to the frist '.' if any.
+        char *dot = strstr(buffer, ".");
+        if (dot) {
+            *dot = 0;
+        }
+
 		current = addSegment( current, buffer, 231, 89, false );
 	}
 	return current;
