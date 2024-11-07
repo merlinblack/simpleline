@@ -215,7 +215,7 @@ Segment *host_segment(Segment *current)
         buffer[HOST_NAME_MAX] = 0; // Incase of truncation
 
         // Only display up to the frist '.' if any.
-        char *dot = strstr(buffer, ".");
+        char *dot = strchr(buffer, '.');
         if (dot) {
             *dot = 0;
         }
