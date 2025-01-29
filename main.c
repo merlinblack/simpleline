@@ -208,7 +208,7 @@ Segment *user_segment(Segment *current)
 
 Segment *host_segment(Segment *current)
 {
-	if (getenv("SSH_CLIENT") != NULL)
+	if (getenv("SSH_CONNECTION") != NULL)
 	{
 		char buffer[HOST_NAME_MAX+1];
 		gethostname(buffer, HOST_NAME_MAX);
