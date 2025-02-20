@@ -33,6 +33,9 @@
 
 #define RESET_COLOR "\\[\e[0m\\]"
 
+// See 'man console_codes' and search for 'ECMA-48 Select Graphic Rendition'
+// for ANSI escape codes for colours
+
 // Command line parameter values
 int last_command_exit_code = 0;
 int number_of_jobs_running = 0;
@@ -392,20 +395,20 @@ void print_segments(Segment *head)
 		{
 			printf("%s", "\\[\e[3m\\]");
 		}
-		printf("\\[\e[38;5;%dm\e[48;5;%dm\\] %s \\[\e[0m\\]", current->fore_color, current->back_color, current->text);
+		printf("\\[\e[38;5;%d;48;5;%dm\\] %s \\[\e[0m\\]", current->fore_color, current->back_color, current->text);
 		if (current->next)
 		{
 			if (current->back_color == current->next->back_color)
 			{
-				printf("\\[\e[38;5;245m\e[48;5;%dm\\]%s", current->next->back_color, SEGMENT_THIN);
+				printf("\\[\e[38;5;245;48;5;%dm\\]%s", current->next->back_color, SEGMENT_THIN);
 			}
             else if (current->next->back_color == 0)
             {
-				printf("\\[\e[38;5;%dm\e[49m\\]%s", current->back_color, SEGMENT);
+				printf("\\[\e[38;5;%d;49m\\]%s", current->back_color, SEGMENT);
             }
 			else
 			{
-				printf("\\[\e[38;5;%dm\e[48;5;%dm\\]%s", current->back_color, current->next->back_color, SEGMENT);
+				printf("\\[\e[38;5;%d;48;5;%dm\\]%s", current->back_color, current->next->back_color, SEGMENT);
 			}
 		}
 
@@ -413,7 +416,7 @@ void print_segments(Segment *head)
 		current = current->next;
 	}
 
-	printf("\\[\e[38;5;%dm\e[49m\\]%s%s ", last_back_color, SEGMENT, RESET_COLOR);
+	printf("\\[\e[38;5;%d;49m\\]%s%s ", last_back_color, SEGMENT, RESET_COLOR);
 
 }
 
