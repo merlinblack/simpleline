@@ -421,7 +421,7 @@ int main(int argc, char*argv[])
 {
 	parse_arguments(argc, argv);
 
-	Segment *head = addSegment(NULL, "", 0, 0);
+	Segment *head = addSegment(NULL, RESET_COLOR, 0, 0);
 	head->raw = true;
 
 	Segment *current;
