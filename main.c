@@ -251,6 +251,26 @@ Segment* python_virtual_env_segment(Segment* current)
 	return current;
 }
 
+Segment* aws_awsume_profile_segment(Segment* current)
+{
+    char *profile = getenv("AWSUME_PROFILE");
+    if (profile) {
+        if (strcmp(profile, "connect_dev") == 0) {
+            // Default - dont show
+            return current;
+        }
+
+        char buffer[BUFFER_SIZE];
+
+        snprintf(buffer, BUFFER_SIZE, "AWS: %s", profile);
+
+        current = addSegment(current, buffer, 231, 38, false );
+        current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
+        current->raw = true;
+    }
+    return current;
+}
+
 Segment* jobs_running_segment(Segment* current)
 {
 	if (number_of_jobs_running)
@@ -392,6 +412,7 @@ int main(int argc, char*argv[])
 	current = notice_segment(head);
 	current = git_segments(current);
 	current = python_virtual_env_segment(current);
+	current = aws_awsume_profile_segment(current);
 	current = user_segment(current);
 	current = host_segment(current);
 	current = current_dir_segments(current);
