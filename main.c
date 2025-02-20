@@ -31,7 +31,7 @@
 #define SEGMENT "\uE0B0" // 
 #define SEGMENT_THIN "\uE0B1" // 
 
-#define RESET_COLOR "\\[\x1b[0m\\]"
+#define RESET_COLOR "\\[\e[0m\\]"
 
 // Command line parameter values
 int last_command_exit_code = 0;
@@ -108,7 +108,7 @@ void parse_arguments(int argc, char *argv[])
 	}
 }
 
-Segment *git_segments(Segment *current)
+Segment* git_segments(Segment *current)
 {
 	bool isGit = true;
 	char buffer[PROC_BUFFER_SIZE];
@@ -190,7 +190,7 @@ Segment *git_segments(Segment *current)
 	return current;
 }
 
-Segment *notice_segment(Segment *current)
+Segment* notice_segment(Segment *current)
 {
 	if (getenv("PROMPT_NOTICE"))
 	{
@@ -201,12 +201,12 @@ Segment *notice_segment(Segment *current)
 	return current;
 }
 
-Segment *user_segment(Segment *current)
+Segment* user_segment(Segment *current)
 {
 	return addSegment(current, getenv("USER"), 231, 22, true);
 }
 
-Segment *host_segment(Segment *current)
+Segment* host_segment(Segment *current)
 {
 	if (getenv("SSH_CONNECTION") != NULL)
 	{
@@ -244,7 +244,7 @@ Segment* python_virtual_env_segment(Segment* current)
 		}
 		if (prev2) {
 			current = addSegment(current, prev2, 231, 38, false );
-			current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
+			current = addSegment(current, RESET_COLOR "\r\n", 231, 0, false);
 			current->raw = true;
 		}
 	}
@@ -264,8 +264,8 @@ Segment* aws_awsume_profile_segment(Segment* current)
 
         snprintf(buffer, BUFFER_SIZE, "AWS: %s", profile);
 
-        current = addSegment(current, buffer, 231, 38, false );
-        current = addSegment(current, RESET_COLOR "\r\n", 231, 22, false);
+        current = addSegment(current, buffer, 231, 20, false );
+        current = addSegment(current, RESET_COLOR "\r\n", 231, 0, false);
         current->raw = true;
     }
     return current;
@@ -294,7 +294,7 @@ Segment* exitcode_segment(Segment* current)
 	return current;
 }
 
-Segment *current_dir_segments(Segment *current)
+Segment* current_dir_segments(Segment *current)
 {
 	char *seperator = "/";
 	char *homedir = getenv("HOME");
@@ -377,18 +377,22 @@ void print_segments(Segment *head)
 		}
 		if (current->bold)
 		{
-			printf("%s", "\\[\x1b[1m\\]");
+			printf("%s", "\\[\e[1m\\]");
 		}
-		printf("\\[\x1b[38;5;%dm\x1b[48;5;%dm\\] %s \\[\x1b[0m\\]", current->fore_color, current->back_color, current->text);
+		printf("\\[\e[38;5;%dm\e[48;5;%dm\\] %s \\[\e[0m\\]", current->fore_color, current->back_color, current->text);
 		if (current->next)
 		{
 			if (current->back_color == current->next->back_color)
 			{
-				printf("\\[\x1b[38;5;245m\x1b[48;5;%dm\\]%s", current->next->back_color, SEGMENT_THIN);
+				printf("\\[\e[38;5;245m\e[48;5;%dm\\]%s", current->next->back_color, SEGMENT_THIN);
 			}
+            else if (current->next->back_color == 0)
+            {
+				printf("\\[\e[38;5;%dm\e[49m\\]%s", current->back_color, SEGMENT);
+            }
 			else
 			{
-				printf("\\[\x1b[38;5;%dm\x1b[48;5;%dm\\]%s", current->back_color, current->next->back_color, SEGMENT);
+				printf("\\[\e[38;5;%dm\e[48;5;%dm\\]%s", current->back_color, current->next->back_color, SEGMENT);
 			}
 		}
 
@@ -396,7 +400,7 @@ void print_segments(Segment *head)
 		current = current->next;
 	}
 
-	printf("\\[\x1b[38;5;%dm\x1b[48;5;0m\\]%s%s ", last_back_color, SEGMENT, RESET_COLOR);
+	printf("\\[\e[38;5;%dm\e[49m\\]%s%s ", last_back_color, SEGMENT, RESET_COLOR);
 
 }
 
