@@ -42,11 +42,12 @@ typedef struct Segment {
 	unsigned char fore_color;
 	unsigned char back_color;
 	bool bold;
+    bool italics;
 	bool raw;
 	struct Segment *next;
 } Segment;
 
-Segment *addSegment(Segment *prev, char *text, unsigned char fore_color, unsigned char back_color, bool bold)
+Segment *addSegment(Segment *prev, char *text, unsigned char fore_color, unsigned char back_color)
 {
 	Segment *segment = malloc(sizeof *segment);
 
@@ -54,7 +55,8 @@ Segment *addSegment(Segment *prev, char *text, unsigned char fore_color, unsigne
 	strncat(segment->text, text, MAX_BRANCHNAME_LEN-1);
 	segment->fore_color = fore_color;
 	segment->back_color = back_color;
-	segment->bold = bold;
+	segment->bold = false;
+	segment->italics = false;
 	segment->raw = false;
 	segment->next = NULL;
 
@@ -175,15 +177,16 @@ Segment* git_segments(Segment *current)
 		char buffer[BUFFER_SIZE];
 
 		snprintf(buffer, BUFFER_SIZE, "%s %s", REPO_BRANCH, branch);
-		current = addSegment( current, buffer, 231, 52, false);
+		current = addSegment( current, buffer, 231, 52);
+        current->italics = true;
 
 		snprintf(buffer, BUFFER_SIZE, "%s %u %s %u %s%d",
 				REPO_NOT_STAGED, modified,
 				REPO_STAGED, staged,
 				REPO_UNTRACKED, untracked);
-		current = addSegment( current, buffer, 231, 32, false);
+		current = addSegment( current, buffer, 231, 32);
 
-		current = addSegment( current, RESET_COLOR "\r\n", 0, 0, false);
+		current = addSegment( current, RESET_COLOR "\r\n", 0, 0);
 		current->raw = true;
 	}
 
@@ -194,8 +197,8 @@ Segment* notice_segment(Segment *current)
 {
 	if (getenv("PROMPT_NOTICE"))
 	{
-		current = addSegment(current, getenv("PROMPT_NOTICE"), 231, 38, false);
-		current = addSegment(current, RESET_COLOR "\r\n", 0, 0, false);
+		current = addSegment(current, getenv("PROMPT_NOTICE"), 231, 38);
+		current = addSegment(current, RESET_COLOR "\r\n", 0, 0);
 		current->raw = true;
 	}
 	return current;
@@ -203,7 +206,9 @@ Segment* notice_segment(Segment *current)
 
 Segment* user_segment(Segment *current)
 {
-	return addSegment(current, getenv("USER"), 231, 22, true);
+    current = addSegment(current, getenv("USER"), 231, 22);
+    current->bold = true;
+	return current; 
 }
 
 Segment* host_segment(Segment *current)
@@ -220,7 +225,7 @@ Segment* host_segment(Segment *current)
             *dot = 0;
         }
 
-		current = addSegment( current, buffer, 231, 89, false );
+		current = addSegment( current, buffer, 231, 89 );
 	}
 	return current;
 }
@@ -243,8 +248,8 @@ Segment* python_virtual_env_segment(Segment* current)
 			folder = strtok(NULL, seperator);
 		}
 		if (prev2) {
-			current = addSegment(current, prev2, 231, 38, false );
-			current = addSegment(current, RESET_COLOR "\r\n", 231, 0, false);
+			current = addSegment(current, prev2, 231, 38 );
+			current = addSegment(current, RESET_COLOR "\r\n", 231, 0);
 			current->raw = true;
 		}
 	}
@@ -264,8 +269,8 @@ Segment* aws_awsume_profile_segment(Segment* current)
 
         snprintf(buffer, BUFFER_SIZE, "AWS: %s", profile);
 
-        current = addSegment(current, buffer, 231, 20, false );
-        current = addSegment(current, RESET_COLOR "\r\n", 231, 0, false);
+        current = addSegment(current, buffer, 231, 20 );
+        current = addSegment(current, RESET_COLOR "\r\n", 231, 0);
         current->raw = true;
     }
     return current;
@@ -277,7 +282,7 @@ Segment* jobs_running_segment(Segment* current)
 	{
 		char buffer[BUFFER_SIZE];
 		snprintf(buffer, BUFFER_SIZE, "%d Job%s", number_of_jobs_running, number_of_jobs_running == 1 ? "": "s" );
-		current = addSegment(current, buffer, 231, 22, false);
+		current = addSegment(current, buffer, 231, 22);
 	}
 	return current;
 }
@@ -288,7 +293,8 @@ Segment* exitcode_segment(Segment* current)
 	{
 		char buffer[BUFFER_SIZE];
 		snprintf(buffer, BUFFER_SIZE, "%d", last_command_exit_code);
-		current = addSegment(current, buffer, 231, 3, true);
+		current = addSegment(current, buffer, 231, 3);
+        current->bold = true;
 	}
 
 	return current;
@@ -301,7 +307,7 @@ Segment* current_dir_segments(Segment *current)
 	char *pwd = getenv("PWD");
 	char path[4096];
 
-	current = addSegment(current, "~", 231, 238, false);
+	current = addSegment(current, "~", 231, 238);
 	if (strstr(pwd, homedir) == pwd)
 	{
 		strcpy(path, pwd + strlen(homedir));
@@ -319,15 +325,17 @@ Segment* current_dir_segments(Segment *current)
 	{
 		while (folder)
 		{
-			current = addSegment(current, folder, 231, 238, false);
+			current = addSegment(current, folder, 231, 238);
+            current->italics = true;
 			folder = strtok(NULL, seperator);
 		}
 	}
 	else {
 		// Only add first, '...' and last current path folder.
-		current = addSegment(current, folder, 231, 238, false);
+		current = addSegment(current, folder, 231, 238);
+        current->italics = true;
 		folder = strtok(NULL, seperator);
-		current = addSegment(current, PATH_ELLIPSIS, 231, 238, false);
+		current = addSegment(current, PATH_ELLIPSIS, 231, 238);
 		char *prev_folder = NULL;
 		while (folder)
 		{
@@ -336,7 +344,8 @@ Segment* current_dir_segments(Segment *current)
 		}
 		if (prev_folder)
 		{
-			current = addSegment(current, prev_folder, 231, 238, false);
+			current = addSegment(current, prev_folder, 231, 238);
+            current->italics = true;
 		}
 	}
 
@@ -360,7 +369,7 @@ Segment *friday_icon_segment(Segment *current)
 		which = BEERMUG;
 	}
 
-	return addSegment(current, which, 231, 238, false);
+	return addSegment(current, which, 231, 238);
 }
 
 void print_segments(Segment *head)
@@ -378,6 +387,10 @@ void print_segments(Segment *head)
 		if (current->bold)
 		{
 			printf("%s", "\\[\e[1m\\]");
+		}
+		if (current->italics)
+		{
+			printf("%s", "\\[\e[3m\\]");
 		}
 		printf("\\[\e[38;5;%dm\e[48;5;%dm\\] %s \\[\e[0m\\]", current->fore_color, current->back_color, current->text);
 		if (current->next)
@@ -408,7 +421,7 @@ int main(int argc, char*argv[])
 {
 	parse_arguments(argc, argv);
 
-	Segment *head = addSegment(NULL, "", 0, 0, false);
+	Segment *head = addSegment(NULL, "", 0, 0);
 	head->raw = true;
 
 	Segment *current;
