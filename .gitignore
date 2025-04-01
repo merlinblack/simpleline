@@ -1,5 +1,6 @@
 *~
-*.swp
 simpleline
 simpleline_setup
+*.swp
+tags
 .vscode
