@@ -27,7 +27,7 @@ $(SETUP_SCRIPT): setup.in
 
 .ONESHELL:
 tags:	$(SRC)
-	@if command -v ctags 2>&1 >/dev/null; then
+	@if command -V ctags &> /dev/null; then
 		ctags $(SRC)
 	else
 		touch ctags
