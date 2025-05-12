@@ -6,17 +6,19 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <wchar.h>
 
 // For Darwin
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX 128
 #endif
 
+#define MAX_SEGMENTS 20
 #define PROC_BUFFER_SIZE 1024
 #define MAX_BRANCHNAME_LEN 256
-#define BUFFER_SIZE 256
+#define MAX_SEGMENT_TEXT 256
+#define BUFFER_SIZE MAX_SEGMENT_TEXT - 1  // -1 keeps strncat warnings away
 #define PATH_SHORTEN_LENGTH 35
-
 #define REPO_BRANCH "\uE0A0"      // 
 #define REPO_STAGED "\u2714"      // ✔
 #define REPO_NOT_STAGED "\u270E"  // ✎
@@ -47,15 +49,20 @@ typedef struct Segment {
   bool bold;
   bool italics;
   bool raw;
-  struct Segment* next;
 } Segment;
 
-Segment* addSegment(Segment* prev,
-                    char* text,
+Segment segments[MAX_SEGMENTS];
+int last_used_segment = 0;
+
+Segment* addSegment(char* text,
                     unsigned char fore_color,
                     unsigned char back_color)
 {
-  Segment* segment = malloc(sizeof *segment);
+  if (last_used_segment == MAX_SEGMENTS) {
+    fprintf(stderr, "ERROR! Maximum segments reached!\n");
+    exit(EXIT_FAILURE);
+  }
+  Segment* segment = &segments[last_used_segment++];
 
   segment->text[0] = 0;
   strncat(segment->text, text, MAX_BRANCHNAME_LEN - 1);
@@ -64,24 +71,8 @@ Segment* addSegment(Segment* prev,
   segment->bold = false;
   segment->italics = false;
   segment->raw = false;
-  segment->next = NULL;
-
-  if (prev) {
-    prev->next = segment;
-  }
 
   return segment;
-}
-
-void freeSegments(Segment* head)
-{
-  Segment* current = head;
-
-  while (current) {
-    current = current->next;
-    free(head);
-    head = current;
-  }
 }
 
 void parse_arguments(int argc, char* argv[])
@@ -109,7 +100,7 @@ void parse_arguments(int argc, char* argv[])
   }
 }
 
-Segment* git_segments(Segment* current)
+void git_segments()
 {
   bool isGit = true;
   char buffer[PROC_BUFFER_SIZE];
@@ -167,38 +158,34 @@ Segment* git_segments(Segment* current)
     char buffer[BUFFER_SIZE];
 
     snprintf(buffer, BUFFER_SIZE, "%s %s", REPO_BRANCH, branch);
-    current = addSegment(current, buffer, 231, 52);
-    current->italics = true;
+    Segment* segment = addSegment(buffer, 231, 52);
+    segment->italics = true;
 
     snprintf(buffer, BUFFER_SIZE, "%s %u %s %u %s%d", REPO_NOT_STAGED, modified,
              REPO_STAGED, staged, REPO_UNTRACKED, untracked);
-    current = addSegment(current, buffer, 231, 32);
+    addSegment(buffer, 231, 32);
 
-    current = addSegment(current, RESET_COLOR "\r\n", 0, 0);
-    current->raw = true;
+    segment = addSegment(RESET_COLOR "\r\n", 0, 0);
+    segment->raw = true;
   }
-
-  return current;
 }
 
-Segment* notice_segment(Segment* current)
+void notice_segment()
 {
   if (getenv("PROMPT_NOTICE")) {
-    current = addSegment(current, getenv("PROMPT_NOTICE"), 231, 38);
-    current = addSegment(current, RESET_COLOR "\r\n", 0, 0);
-    current->raw = true;
+    addSegment(getenv("PROMPT_NOTICE"), 231, 38);
+    Segment* segment = addSegment(RESET_COLOR "\r\n", 0, 0);
+    segment->raw = true;
   }
-  return current;
 }
 
-Segment* user_segment(Segment* current)
+void user_segment()
 {
-  current = addSegment(current, getenv("USER"), 231, 22);
-  current->bold = true;
-  return current;
+  Segment* segment = addSegment(getenv("USER"), 231, 22);
+  segment->bold = true;
 }
 
-Segment* host_segment(Segment* current)
+void host_segment()
 {
   if (getenv("SSH_CONNECTION") != NULL) {
     char buffer[HOST_NAME_MAX + 1];
@@ -211,17 +198,16 @@ Segment* host_segment(Segment* current)
       *dot = 0;
     }
 
-    current = addSegment(current, buffer, 231, 89);
+    addSegment(buffer, 231, 89);
   }
-  return current;
 }
 
-Segment* python_virtual_env_segment(Segment* current)
+void python_virtual_env_segment()
 {
   char* env = "VIRTUAL_ENV";
   if (getenv(env) != NULL) {
     char* seperator = "/";
-    char buffer[PATH_MAX];
+    char buffer[PATH_MAX + 1];
     strncpy(buffer, getenv(env), PATH_MAX);
     char* folder = strtok(buffer, seperator);
     char* prev = NULL;
@@ -232,69 +218,64 @@ Segment* python_virtual_env_segment(Segment* current)
       folder = strtok(NULL, seperator);
     }
     if (prev2) {
-      current = addSegment(current, prev2, 231, 38);
-      current = addSegment(current, RESET_COLOR "\r\n", 231, 0);
-      current->raw = true;
+      addSegment(prev2, 231, 38);
+      Segment* segment = addSegment(RESET_COLOR "\r\n", 231, 0);
+      segment->raw = true;
     }
   }
-  return current;
 }
 
-Segment* aws_awsume_profile_segment(Segment* current)
+void aws_awsume_profile_segment()
 {
   char* profile = getenv("AWSUME_PROFILE");
   if (profile) {
     if (strcmp(profile, "connect_dev") == 0) {
       // Default - dont show
-      return current;
+      return;
     }
 
     char buffer[BUFFER_SIZE];
 
     snprintf(buffer, BUFFER_SIZE, "AWS: %s", profile);
 
-    current = addSegment(current, buffer, 231, 20);
-    current = addSegment(current, RESET_COLOR "\r\n", 231, 0);
-    current->raw = true;
+    addSegment(buffer, 231, 20);
+    Segment* segment = addSegment(RESET_COLOR "\r\n", 231, 0);
+    segment->raw = true;
   }
-  return current;
 }
 
-Segment* jobs_running_segment(Segment* current)
+void jobs_running_segment()
 {
   if (number_of_jobs_running) {
     char buffer[BUFFER_SIZE];
     snprintf(buffer, BUFFER_SIZE, "%d Job%s", number_of_jobs_running,
              number_of_jobs_running == 1 ? "" : "s");
-    current = addSegment(current, buffer, 231, 22);
+    addSegment(buffer, 231, 22);
   }
-  return current;
 }
 
-Segment* exitcode_segment(Segment* current)
+void exitcode_segment()
 {
   if (last_command_exit_code) {
     char buffer[BUFFER_SIZE];
     snprintf(buffer, BUFFER_SIZE, "%d", last_command_exit_code);
-    current = addSegment(current, buffer, 231, 3);
-    current->bold = true;
+    Segment* segment = addSegment(buffer, 231, 3);
+    segment->bold = true;
   }
-
-  return current;
 }
 
-Segment* current_dir_segments(Segment* current)
+void current_dir_segments()
 {
   char* seperator = "/";
   char* homedir = getenv("HOME");
   char* pwd = getenv("PWD");
   char path[4096];
 
-  current = addSegment(current, "~", 231, 238);
+  Segment* segment = addSegment("~", 231, 238);
   if (strstr(pwd, homedir) == pwd) {
     strcpy(path, pwd + strlen(homedir));
   } else {
-    current->text[0] = '/';
+    segment->text[0] = '/';
     strcpy(path, pwd);
   }
 
@@ -303,33 +284,31 @@ Segment* current_dir_segments(Segment* current)
 
   if (path_len < PATH_SHORTEN_LENGTH) {
     while (folder) {
-      current = addSegment(current, folder, 231, 238);
-      current->italics = true;
+      segment = addSegment(folder, 231, 238);
+      segment->italics = true;
       folder = strtok(NULL, seperator);
     }
   } else {
     // Only add first, '...' and last current path folder.
-    current = addSegment(current, folder, 231, 238);
-    current->italics = true;
+    segment = addSegment(folder, 231, 238);
+    segment->italics = true;
     folder = strtok(NULL, seperator);
-    current = addSegment(current, PATH_ELLIPSIS, 231, 238);
+    segment = addSegment(PATH_ELLIPSIS, 231, 238);
     char* prev_folder = NULL;
     while (folder) {
       prev_folder = folder;
       folder = strtok(NULL, seperator);
     }
     if (prev_folder) {
-      current = addSegment(current, prev_folder, 231, 238);
-      current->italics = true;
+      segment = addSegment(prev_folder, 231, 238);
+      segment->italics = true;
     }
   }
 
-  current->bold = true;
-
-  return current;
+  segment->bold = true;
 }
 
-Segment* friday_icon_segment(Segment* current)
+void friday_icon_segment()
 {
   char* which = PENGUIN;
 
@@ -343,17 +322,19 @@ Segment* friday_icon_segment(Segment* current)
     which = BEERMUG;
   }
 
-  return addSegment(current, which, 231, 238);
+  addSegment(which, 231, 238);
 }
 
-void print_segments(Segment* head)
+void print_segments()
 {
-  Segment* current = head;
-  unsigned char last_back_color;
-  while (current) {
+  unsigned char last_back_color = 0;
+  int index = 0;
+
+  while (index < last_used_segment) {
+    Segment* current = &segments[index];
     if (current->raw) {
       printf("%s", current->text);
-      current = current->next;
+      index++;
       continue;
     }
     if (current->bold) {
@@ -364,20 +345,20 @@ void print_segments(Segment* head)
     }
     printf("\\[\e[38;5;%d;48;5;%dm\\] %s \\[\e[0m\\]", current->fore_color,
            current->back_color, current->text);
-    if (current->next) {
-      if (current->back_color == current->next->back_color) {
-        printf("\\[\e[38;5;245;48;5;%dm\\]%s", current->next->back_color,
-               SEGMENT_THIN);
-      } else if (current->next->back_color == 0) {
+    if ((index + 1) < last_used_segment) {
+      Segment* next = &segments[index + 1];
+      if (current->back_color == next->back_color) {
+        printf("\\[\e[38;5;245;48;5;%dm\\]%s", next->back_color, SEGMENT_THIN);
+      } else if (next->back_color == 0) {
         printf("\\[\e[38;5;%d;49m\\]%s", current->back_color, SEGMENT);
       } else {
         printf("\\[\e[38;5;%d;48;5;%dm\\]%s", current->back_color,
-               current->next->back_color, SEGMENT);
+               next->back_color, SEGMENT);
       }
     }
 
     last_back_color = current->back_color;
-    current = current->next;
+    index++;
   }
 
   printf("\\[\e[38;5;%d;49m\\]%s%s ", last_back_color, SEGMENT, RESET_COLOR);
@@ -387,25 +368,21 @@ int main(int argc, char* argv[])
 {
   parse_arguments(argc, argv);
 
-  Segment* head = addSegment(NULL, RESET_COLOR, 0, 0);
+  Segment* head = addSegment(RESET_COLOR, 0, 0);
   head->raw = true;
 
-  Segment* current;
+  notice_segment();
+  git_segments();
+  python_virtual_env_segment();
+  aws_awsume_profile_segment();
+  user_segment();
+  host_segment();
+  current_dir_segments();
+  jobs_running_segment();
+  friday_icon_segment();
+  exitcode_segment();
 
-  current = notice_segment(head);
-  current = git_segments(current);
-  current = python_virtual_env_segment(current);
-  current = aws_awsume_profile_segment(current);
-  current = user_segment(current);
-  current = host_segment(current);
-  current = current_dir_segments(current);
-  current = jobs_running_segment(current);
-  current = friday_icon_segment(current);
-  current = exitcode_segment(current);
-
-  print_segments(head);
-
-  freeSegments(head);
+  print_segments();
 
   return EXIT_SUCCESS;
 }
