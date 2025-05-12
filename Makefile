@@ -1,4 +1,4 @@
-CFLAGS=-O3
+CFLAGS=-O3 -Wall -Werror -fsanitize=address -fsanitize=undefined
 SRC=main.c
 TARGET=simpleline
 SETUP_SCRIPT=$(TARGET)_setup
