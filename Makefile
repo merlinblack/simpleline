@@ -1,4 +1,4 @@
-CFLAGS=-O3 -Wall -Werror -fsanitize=address -fsanitize=undefined
+CFLAGS=-O3 -Wall -Werror
 SRC=main.c
 TARGET=simpleline
 SETUP_SCRIPT=$(TARGET)_setup
@@ -6,6 +6,10 @@ INSTALL_PREFIX=$(HOME)/bin
 
 .PHONY: all
 all: $(TARGET) $(SETUP_SCRIPT) tags
+
+.PHONY: debug
+debug: CFLAGS += -fsanitize=address -fsanitize=undefined
+debug: all
 
 .PHONY: clean
 clean:
@@ -27,8 +31,8 @@ $(SETUP_SCRIPT): setup.in
 
 .ONESHELL:
 tags:	$(SRC)
-	@if command -V ctags &> /dev/null; then
+	@if command -V ctags 2>&1 > /dev/null; then
 		ctags $(SRC)
 	else
-		touch ctags
+		touch tags
 	fi
