@@ -28,6 +28,7 @@
 
 #define BEERMUG "\U0001F37A"    // 🍺
 #define PENGUIN "\U0001F427"    // 🐧
+#define TOOLBOX "\U0001F6E0"    // 🛠
 #define PATH_ELLIPSIS "\u2026"  // …
 
 #define SEGMENT "\uE0B0"       // 
@@ -308,6 +309,13 @@ void current_dir_segments()
   segment->bold = true;
 }
 
+void inside_toolbx()
+{
+  if (access("/run/.containerenv", F_OK) == 0) {
+    addSegment(TOOLBOX, 231, 52);
+  }
+}
+
 void friday_icon_segment()
 {
   char* which = PENGUIN;
@@ -380,6 +388,7 @@ int main(int argc, char* argv[])
   current_dir_segments();
   jobs_running_segment();
   friday_icon_segment();
+  inside_toolbx();
   exitcode_segment();
 
   print_segments();
