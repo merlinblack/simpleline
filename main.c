@@ -309,7 +309,7 @@ void current_dir_segments()
   segment->bold = true;
 }
 
-void inside_toolbx()
+void inside_toolbx_segment()
 {
   if (access("/run/.containerenv", F_OK) == 0) {
     addSegment(TOOLBOX, 231, 52);
@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
   current_dir_segments();
   jobs_running_segment();
   friday_icon_segment();
-  inside_toolbx();
+  inside_toolbx_segment();
   exitcode_segment();
 
   print_segments();
