@@ -1,9 +1,11 @@
+#include <asm-generic/ioctls.h>
 #include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <time.h>
 #include <unistd.h>
 #include <wchar.h>
@@ -333,6 +335,18 @@ void friday_icon_segment()
   addSegment(which, 231, 238);
 }
 
+void narrow_terminal_segment()
+{
+  struct winsize w;
+
+  ioctl(0, TIOCGWINSZ, &w);
+
+  if (w.ws_col < 80) {
+    Segment* segment = addSegment("\r\n", 0, 0);
+    segment->raw = true;
+  }
+}
+
 void print_segments()
 {
   unsigned char last_back_color = 0;
@@ -387,6 +401,7 @@ int main(int argc, char* argv[])
   host_segment();
   current_dir_segments();
   jobs_running_segment();
+  narrow_terminal_segment();
   friday_icon_segment();
   inside_toolbx_segment();
   exitcode_segment();
