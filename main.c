@@ -269,38 +269,45 @@ void exitcode_segment()
 
 void current_dir_segments()
 {
-  char* seperator = "/";
+  char* separator = "/";
   char* homedir = getenv("HOME");
+  char* user = getenv("USER");
   char* pwd = getenv("PWD");
   char path[4096];
+
+  // Treat /var/home/$USER like $HOME (immutable OS, Silverblue, Bazzite, etc)
+  char varhomedir[4096];
+  snprintf(varhomedir, 4096, "/var/home/%s", user);
 
   Segment* segment = addSegment("~", 231, 238);
   if (strstr(pwd, homedir) == pwd) {
     strcpy(path, pwd + strlen(homedir));
+  } else if (strstr(pwd, varhomedir) == pwd) {
+    strcpy(path, pwd + strlen(varhomedir));
   } else {
-    segment->text[0] = '/';
+    segment->text[0] = separator[0];
     strcpy(path, pwd);
   }
 
   int path_len = strlen(path);
-  char* folder = strtok(path, seperator);
+  char* folder = strtok(path, separator);
 
   if (path_len < PATH_SHORTEN_LENGTH) {
     while (folder) {
       segment = addSegment(folder, 231, 238);
       segment->italics = true;
-      folder = strtok(NULL, seperator);
+      folder = strtok(NULL, separator);
     }
   } else {
     // Only add first, '...' and last current path folder.
     segment = addSegment(folder, 231, 238);
     segment->italics = true;
-    folder = strtok(NULL, seperator);
+    folder = strtok(NULL, separator);
     segment = addSegment(PATH_ELLIPSIS, 231, 238);
     char* prev_folder = NULL;
     while (folder) {
       prev_folder = folder;
-      folder = strtok(NULL, seperator);
+      folder = strtok(NULL, separator);
     }
     if (prev_folder) {
       segment = addSegment(prev_folder, 231, 238);
