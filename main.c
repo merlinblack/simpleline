@@ -1,4 +1,3 @@
-#include <asm-generic/ioctls.h>
 #include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -22,8 +21,8 @@
 #define BUFFER_SIZE MAX_SEGMENT_TEXT - 1  // -1 keeps strncat warnings away
 #define PATH_SHORTEN_LENGTH 35
 #define REPO_BRANCH "\uE0A0"      // 
-#define REPO_STAGED "\u2714"      // ✔
-#define REPO_NOT_STAGED "\u270E"  // ✎
+#define REPO_STAGED "\u2705"      // ✅
+#define REPO_NOT_STAGED "\U0001FAA1"  // 🪡
 #define REPO_UNTRACKED "+"
 #define REPO_CONFLICTED "\u273C"  // ✼
 #define REPO_STASHED "\u2691"     // ⚑
@@ -166,11 +165,14 @@ void git_segments()
 
     snprintf(buffer, BUFFER_SIZE, "%s %u %s %u %s%d", REPO_NOT_STAGED, modified,
              REPO_STAGED, staged, REPO_UNTRACKED, untracked);
-    addSegment(buffer, 231, 32);
-
-    segment = addSegment(RESET_COLOR "\r\n", 0, 0);
-    segment->raw = true;
+    addSegment(buffer, 231, 31);
   }
+}
+
+void newline_segment()
+{
+  Segment* segment = addSegment(RESET_COLOR "\r\n", 0, 0);
+  segment->raw = true;
 }
 
 void notice_segment()
@@ -321,6 +323,7 @@ void current_dir_segments()
 void inside_toolbx_segment()
 {
   if (access("/run/.containerenv", F_OK) == 0) {
+    addSegment(getenv("CONTAINER_ID"), 231, 52);
     addSegment(TOOLBOX, 231, 52);
   }
 }
@@ -400,8 +403,14 @@ int main(int argc, char* argv[])
   Segment* head = addSegment(RESET_COLOR, 0, 0);
   head->raw = true;
 
+  newline_segment();
   notice_segment();
   git_segments();
+  inside_toolbx_segment();
+  if (last_used_segment > 2)
+  {
+    newline_segment();
+  }
   python_virtual_env_segment();
   aws_awsume_profile_segment();
   user_segment();
@@ -410,7 +419,6 @@ int main(int argc, char* argv[])
   jobs_running_segment();
   narrow_terminal_segment();
   friday_icon_segment();
-  inside_toolbx_segment();
   exitcode_segment();
 
   print_segments();
