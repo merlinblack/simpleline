@@ -119,6 +119,10 @@ void git_segments()
       isGit = false;
       break;
     }
+    if (strstr(buffer, "command not found") != NULL) {
+      isGit = false;
+      break;
+    }
     switch (buffer[0]) {
       case '#': {
         char* end = strchr(&buffer[3], '.');
