@@ -2,7 +2,7 @@ CFLAGS=-O3 -Wall -Werror
 SRC=main.c
 TARGET=simpleline
 SETUP_SCRIPT=$(TARGET)_setup
-INSTALL_PREFIX=$(HOME)/bin
+INSTALL_PREFIX=$(HOME)/.local/bin
 
 .PHONY: all
 all: $(TARGET) $(SETUP_SCRIPT) tags
