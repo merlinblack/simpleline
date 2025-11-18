@@ -5,3 +5,4 @@ simpleline_setup
 tags
 .vscode
 compile_commands.json
+.nobackup
