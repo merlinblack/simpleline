@@ -20,8 +20,8 @@
 #define MAX_SEGMENT_TEXT 256
 #define BUFFER_SIZE MAX_SEGMENT_TEXT - 1  // -1 keeps strncat warnings away
 #define PATH_SHORTEN_LENGTH 35
-#define REPO_BRANCH "\uE0A0"      // 
-#define REPO_STAGED "\u2705"      // ✅
+#define REPO_BRANCH "\uE0A0"          // 
+#define REPO_STAGED "\u2705"          // ✅
 #define REPO_NOT_STAGED "\U0001FAA1"  // 🪡
 #define REPO_UNTRACKED "+"
 #define REPO_CONFLICTED "\u273C"  // ✼
@@ -131,7 +131,8 @@ void git_segments()
         }
         if (end) {
           strncpy(branch, &buffer[3], end - &buffer[3]);
-        } else {
+        }
+        else {
           strcpy(branch, &buffer[3]);
         }
         break;
@@ -268,7 +269,7 @@ void exitcode_segment()
   if (last_command_exit_code) {
     char buffer[BUFFER_SIZE];
     snprintf(buffer, BUFFER_SIZE, "%d", last_command_exit_code);
-    Segment* segment = addSegment(buffer, 231, 3);
+    Segment* segment = addSegment(buffer, 0, 3);
     segment->bold = true;
   }
 }
@@ -288,9 +289,11 @@ void current_dir_segments()
   Segment* segment = addSegment("~", 231, 238);
   if (strstr(pwd, homedir) == pwd) {
     strcpy(path, pwd + strlen(homedir));
-  } else if (strstr(pwd, varhomedir) == pwd) {
+  }
+  else if (strstr(pwd, varhomedir) == pwd) {
     strcpy(path, pwd + strlen(varhomedir));
-  } else {
+  }
+  else {
     segment->text[0] = separator[0];
     strcpy(path, pwd);
   }
@@ -304,7 +307,8 @@ void current_dir_segments()
       segment->italics = true;
       folder = strtok(NULL, separator);
     }
-  } else {
+  }
+  else {
     // Only add first, '...' and last current path folder.
     segment = addSegment(folder, 231, 238);
     segment->italics = true;
@@ -385,9 +389,11 @@ void print_segments()
       Segment* next = &segments[index + 1];
       if (current->back_color == next->back_color) {
         printf("\\[\e[38;5;245;48;5;%dm\\]%s", next->back_color, SEGMENT_THIN);
-      } else if (next->back_color == 0) {
+      }
+      else if (next->back_color == 0) {
         printf("\\[\e[38;5;%d;49m\\]%s", current->back_color, SEGMENT);
-      } else {
+      }
+      else {
         printf("\\[\e[38;5;%d;48;5;%dm\\]%s", current->back_color,
                next->back_color, SEGMENT);
       }
@@ -411,8 +417,7 @@ int main(int argc, char* argv[])
   notice_segment();
   git_segments();
   inside_toolbx_segment();
-  if (last_used_segment > 2)
-  {
+  if (last_used_segment > 2) {
     newline_segment();
   }
   python_virtual_env_segment();
