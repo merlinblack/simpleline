@@ -235,25 +235,6 @@ void python_virtual_env_segment()
   }
 }
 
-void aws_awsume_profile_segment()
-{
-  char* profile = getenv("AWSUME_PROFILE");
-  if (profile) {
-    if (strcmp(profile, "connect_dev") == 0) {
-      // Default - dont show
-      return;
-    }
-
-    char buffer[BUFFER_SIZE];
-
-    snprintf(buffer, BUFFER_SIZE, "AWS: %s", profile);
-
-    addSegment(buffer, 231, 20);
-    Segment* segment = addSegment(RESET_COLOR "\r\n", 231, 0);
-    segment->raw = true;
-  }
-}
-
 void jobs_running_segment()
 {
   if (number_of_jobs_running) {
@@ -421,7 +402,6 @@ int main(int argc, char* argv[])
     newline_segment();
   }
   python_virtual_env_segment();
-  aws_awsume_profile_segment();
   user_segment();
   host_segment();
   current_dir_segments();
