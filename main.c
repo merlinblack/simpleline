@@ -111,6 +111,11 @@ void git_segments()
   unsigned untracked = 0;
   unsigned staged = 0;
 
+  if (getenv("SKIP_GIT")) {
+    addSegment("Skipty git", 231, 38);
+    return;
+  }
+
   FILE* git =
       popen("git status --porcelain=v1 --branch --ignore-submodules 2>&1", "r");
 
