@@ -130,7 +130,7 @@ void git_segments()
     }
     switch (buffer[0]) {
       case '#': {
-        char* end = strchr(&buffer[3], '.');
+        char* end = strstr(&buffer[3], "..");
         if (!end) {
           end = strchr(&buffer[3], '\n');
         }
