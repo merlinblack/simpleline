@@ -30,6 +30,7 @@
 #define BEERMUG "\U0001F37A"    // 🍺
 #define PENGUIN "\U0001F427"    // 🐧
 #define TOOLBOX "\U0001F6E0"    // 🛠
+#define FACTORY "\U0001F3ED"    // 🏭
 #define PATH_ELLIPSIS "\u2026"  // …
 
 #define SEGMENT "\uE0B0"       // 
@@ -289,8 +290,13 @@ void current_dir_segments()
 
   if (path_len < PATH_SHORTEN_LENGTH) {
     while (folder) {
-      segment = addSegment(folder, 231, 238);
-      segment->italics = true;
+      if (strcmp("build", folder) == 0) {
+        segment = addSegment(FACTORY, 231, 238);
+      }
+      else {
+        segment = addSegment(folder, 231, 238);
+        segment->italics = true;
+      }
       folder = strtok(NULL, separator);
     }
   }
@@ -306,8 +312,13 @@ void current_dir_segments()
       folder = strtok(NULL, separator);
     }
     if (prev_folder) {
-      segment = addSegment(prev_folder, 231, 238);
-      segment->italics = true;
+      if (strcmp("build", prev_folder) == 0) {
+        segment = addSegment(FACTORY, 231, 238);
+      }
+      else {
+        segment = addSegment(prev_folder, 231, 238);
+        segment->italics = true;
+      }
     }
   }
 
