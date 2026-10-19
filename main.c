@@ -20,6 +20,7 @@
 #define MAX_SEGMENT_TEXT 256
 #define BUFFER_SIZE MAX_SEGMENT_TEXT - 1  // -1 keeps strncat warnings away
 #define PATH_SHORTEN_LENGTH 35
+
 #define REPO_BRANCH "\uE0A0"          // 
 #define REPO_STAGED "\u2705"          // ✅
 #define REPO_NOT_STAGED "\U0001FAA1"  // 🪡
@@ -46,7 +47,7 @@ int last_command_exit_code = 0;
 int number_of_jobs_running = 0;
 
 typedef struct Segment {
-  char text[MAX_BRANCHNAME_LEN];
+  char text[MAX_SEGMENT_TEXT];
   unsigned char fore_color;
   unsigned char back_color;
   bool bold;
@@ -68,7 +69,7 @@ Segment* addSegment(char* text,
   Segment* segment = &segments[last_used_segment++];
 
   segment->text[0] = 0;
-  strncat(segment->text, text, MAX_BRANCHNAME_LEN - 1);
+  strncat(segment->text, text, MAX_SEGMENT_TEXT - 1);
   segment->fore_color = fore_color;
   segment->back_color = back_color;
   segment->bold = false;
